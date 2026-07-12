@@ -1,24 +1,3 @@
-"""
-train_model.py
-
-Trains the leakage-safe salary prediction pipeline (RandomForest + TargetEncoder,
-log-transformed target, ordinal experience_level, split-safe rare-category
-bundling) on the DS Salaries dataset, and saves everything the Streamlit
-dashboard (app.py) needs:
-
-    model/salary_model.pkl        -> fitted model, ready to call .predict()
-    model/feature_options.pkl     -> dropdown choices + metadata for the UI
-    model/feature_importances.csv -> for the EDA tab's importance chart
-
-Run once locally before launching the dashboard:
-    python train_model.py
-
-Requires: data/ds_salaries.csv with columns:
-    work_year, experience_level, employment_type, job_title, salary,
-    salary_currency, salary_in_usd, employee_residence, remote_ratio,
-    company_location
-"""
-
 from pathlib import Path
 
 import joblib
