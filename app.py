@@ -56,6 +56,7 @@ if not DATA_PATH.exists():
     st.stop()
 
 df = load_data()
+
 model, options = load_model()
 importances_df = load_importances()
 
@@ -189,24 +190,31 @@ with tab_predict:
         exp_level_num = EXP_LABEL_ORDER.index(exp_label) + 1
 
         def apply_rare_map(value: str, col: str) -> str:
-            return "Other" if value in options["rare_map"].get(col, set()) else value
+            # Add a safety check to prevent the error
+            if options is None:
+                return value  # Return unchanged if options aren't loaded
+            return "Other" if value in options.get("rare_map", {}).get(col, set()) else value
 
         if st.button("Predict salary", type="primary"):
-            input_row = pd.DataFrame([{
-                "work_year": work_year,
-                "experience_level": exp_level_num,
-                "employment_type": employment_type,
-                "job_title": apply_rare_map(job_title, "job_title"),
-                "employee_residence": apply_rare_map(employee_residence, "employee_residence"),
-                "remote_ratio": remote_ratio,
-                "company_location": apply_rare_map(company_location, "company_location"),
-            }])
+            # Validate options exist before proceeding
+            if options is None:
+                st.error("⚠️ Model options failed to load. Please refresh the page.")
+            else:
+                input_row = pd.DataFrame([{
+                    "work_year": work_year,
+                    "experience_level": exp_level_num,
+                    "employment_type": employment_type,
+                    "job_title": apply_rare_map(job_title, "job_title"),
+                    "employee_residence": apply_rare_map(employee_residence, "employee_residence"),
+                    "remote_ratio": remote_ratio,
+                    "company_location": apply_rare_map(company_location, "company_location"),
+                }])
 
-            prediction = model.predict(input_row)[0]
-            st.success(f"### Estimated salary: ${prediction:,.0f} / year (USD)")
-            st.caption(
-                "Estimate only — based on historical patterns in the training data, "
-                "with a held-out test R² around "
-                f"{options['test_r2']:.2f}, meaning real salaries can vary substantially "
-                "from this number."
-            )
+                prediction = model.predict(input_row)[0]
+                st.success(f"### Estimated salary: ${prediction:,.0f} / year (USD)")
+                st.caption(
+                    "Estimate only — based on historical patterns in the training data, "
+                    "with a held-out test R² around "
+                    f"{options['test_r2']:.2f}, meaning real salaries can vary substantially "
+                    "from this number."
+                )
